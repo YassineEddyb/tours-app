@@ -6,13 +6,13 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(userController.getAllTours)
-  .post(userController.createTour);
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
 
 router
   .route("/:id")
-  .get(userController.getTour)
-  .patch(userController.updateTour)
-  .delete(userController.deleteTour);
+  .get(userController.getUser)
+  .patch(userController.updateUser)
+  .delete(userController.deleteUser);
 
 module.exports = router;
