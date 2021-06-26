@@ -15,7 +15,7 @@ dotenv.config({ path: "./config.env" });
 const app = express();
 
 const tourRouter = require("./routes/tourRoutes");
-// const userRouter = require("./routes/userRoutes");
+const userRouter = require("./routes/userRoutes");
 
 const AppError = require("./utils/app-error");
 const errorHandler = require("./controllers/errorController");
@@ -24,7 +24,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 app.use("/api/v1/tours", tourRouter);
-// app.use("/api/v1/users", userRouter);
+app.use("/api/v1/users", userRouter);
 
 // page not found middleware
 app.all("*", (req, res, next) => {
