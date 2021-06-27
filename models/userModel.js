@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     required: [true, "password required"],
     minlength: 6,
     maxlength: 20,
+    select: false,
   },
   confirmPassword: {
     type: String,
@@ -43,10 +44,17 @@ userSchema.pre("save", async function (next) {
   // hash the password with 12 cost
   this.password = await bcrypt.hash(this.password, 12);
 
-  // delete confirmPassword field
+  // delete confirmPassword field(
   this.confirmPassword = undefined;
   next();
 });
+
+userSchema.methods.comparePassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
 
 const User = mongoose.model("User", userSchema);
 

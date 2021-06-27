@@ -1,11 +1,18 @@
-exports.getAllUsers = (req, res) => {
+const User = require("../models/userModel");
+const catchAsync = require("../utils/catch-async");
+
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find();
+
+  // send response
   res.status(200).json({
     status: "success",
+    results: users.length,
     data: {
-      tours: tours,
+      users: users,
     },
   });
-};
+});
 
 exports.getUser = (req, res) => {
   const tourId = req.params.id;
