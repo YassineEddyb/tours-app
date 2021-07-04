@@ -33,6 +33,8 @@ exports.getTour = catchAsync(async (req, res, next) => {
   const tourId = req.params.id;
   const tour = await Tour.findById(tourId);
 
+  console.log(tour);
+
   if (!tour) {
     next(new AppError("tour not found", 404));
     return;
@@ -48,9 +50,9 @@ exports.getTour = catchAsync(async (req, res, next) => {
 });
 
 exports.createTour = catchAsync(async (req, res, next) => {
-  const name = req.body.name;
-  const rating = req.body.rating;
-  const price = req.body.price;
+  // const name = req.body.name;
+  // const rating = req.body.rating;
+  // const price = req.body.price;
 
   const newTour = await Tour.create(req.body);
 
@@ -84,20 +86,15 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tourId = req.params.id;
-  const tour = await Tour.findByIdAndDelete(tourId);
+  const tour = await Tour.findByIdAndDelete(req.params.id);
 
   if (!tour) {
-    next(new AppError("tour not found", 404));
-    return;
+    return next(new AppError("No tour found with that ID", 404));
   }
 
-  // send response
-  res.status(200).json({
+  res.status(204).json({
     status: "success",
-    data: {
-      tour,
-    },
+    data: null,
   });
 });
 
