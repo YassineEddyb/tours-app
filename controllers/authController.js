@@ -13,6 +13,24 @@ const signToken = (id) => {
   });
 };
 
+const createAndSendToken = (user, status, res) => {
+  const token = signToken(user._id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+  if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
+
+  res.cookie("jwt", token, cookieOptions);
+
+  res.status(status).json({
+    status: "success",
+    token: token,
+  });
+};
+
 exports.signup = catchAsync(async (req, res) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -23,13 +41,7 @@ exports.signup = catchAsync(async (req, res) => {
     passwordChangedAt: req.body.passwordChangedAt,
   });
 
-  const token = signToken(newUser._id);
-
-  res.status(200).json({
-    status: "success",
-    token: token,
-    data: newUser,
-  });
+  createAndSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -48,11 +60,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // check if everything is ok, send token to the client
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: "success",
-    token: token,
-  });
+  createAndSendToken(user, 208, res);
 });
 
 exports.protectRouter = catchAsync(async (req, res, next) => {
@@ -173,12 +181,22 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
-  // log the user in
-  const token = signToken(user._id);
+  createAndSendToken(user, 200, res);
+});
 
-  // send response
-  res.status(200).json({
-    status: "success",
-    token: token,
-  });
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // get the carrent user
+  const user = await User.findById(req.user.id).select("+password");
+
+  // check if the posted current password is correct
+  if (!(await user.comparePassword(req.body.currentPassword, user.password))) {
+    return next(new AppError("current password is not correct", 404));
+  }
+
+  // if so update the password
+  user.password = req.body.password;
+  user.confirmPassword = req.body.confirmPassword;
+  await user.save({ validateBeforeSave: false });
+
+  createAndSendToken(user, 200, res);
 });

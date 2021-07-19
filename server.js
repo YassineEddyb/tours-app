@@ -4,6 +4,11 @@ const express = require("express");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
 
 process.on("uncaughtException", (err) => {
   console.log(err.name, err.message, err.stack);
@@ -20,8 +25,35 @@ const userRouter = require("./routes/userRoutes");
 const AppError = require("./utils/app-error");
 const errorHandler = require("./controllers/errorController");
 
+// Global middlewares
+// set security http headers
+app.use(helmet());
+
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: "too many requests from this IP please try again after an hour",
+});
+// limit request from same IP
+app.use("/api", limiter);
+
+// development logger
 app.use(morgan("dev"));
-app.use(express.json());
+// Body parser
+app.use(express.json({ limit: "10kb" }));
+
+// data sanitization against noSql query injection
+app.use(mongoSanitize());
+
+// data sanitization against xss attaks
+app.use(xss());
+
+// prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: ["duration"],
+  })
+);
 
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
