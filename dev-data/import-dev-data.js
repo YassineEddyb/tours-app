@@ -2,12 +2,11 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Tour = require("../models/tourModel");
-const { deleteMany } = require("../models/tourModel");
 
 dotenv.config({ path: "../config.env" });
 
 const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/data/tours-simple.json`, "utf-8")
+  fs.readFileSync(`${__dirname}/data/tours.json`, "utf-8")
 );
 
 const DB = process.env.CONNECT_TO_DATABASE;
@@ -47,5 +46,3 @@ if (process.argv[2] === "--import") {
 } else if (process.argv[2] === "--delete") {
   deleteData();
 }
-
-console.log(process.argv);

@@ -59,6 +59,29 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: "Point",
+          enum: ["Point"],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+      },
+    ],
+    guides: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
   {
     toJSON: { virtuals: true },
@@ -68,6 +91,13 @@ const tourSchema = new mongoose.Schema(
 
 tourSchema.virtual("durationWeaks").get(function () {
   return this.duration / 7;
+});
+
+// virtual populate
+tourSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "tour",
+  localField: "_id",
 });
 
 // document middleware
@@ -87,6 +117,15 @@ tourSchema.pre("aggregate", function (next) {
   this.pipeline().unshift({
     $match: { secretTour: { $ne: true } },
   });
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "guides",
+    select: "-__v",
+  });
+
   next();
 });
 
